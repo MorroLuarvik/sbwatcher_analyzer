@@ -4,25 +4,40 @@
 
 import datetime
 
-class Analyzer():
+class Analyzer:
 
-    raw_info = None
+	raw_info = None
 
-    funcntion_list = {'f1': 'self.f1'}
+	def __init__(self, raw_info = None):
+		""" Установка данных при инициализации класса """
+		self.set_data(raw_info)
 
-    def set_data(self, raw_info):
-        self.raw_info = raw_info
+	def set_data(self, raw_info):
+		""" Установка данных """
+		self.raw_info = raw_info
 
-    
+	def get_sells(self):
+		""" данные о продажах """
+		if (self.raw_info is None):
+			raise Exception('Нет данных')
+		
+		return [datetime.datetime.fromtimestamp(item['event_ts']) for item in self.raw_info], [item['sell_price'] for item in self.raw_info]
 
-    def get_sells(self):
-        if (not raw_info)
-            raise Exception('Нет данных')
-        
-        return [datetime.datetime.fromtimestamp(item['event_ts']) for item in self.raw_info], [item['sell_price'] for item in self.rates]
+	def get_buys(self):
+		""" данные о покупках """
+		if (self.raw_info is None):
+			raise Exception('Нет данных')
+		
+		return [datetime.datetime.fromtimestamp(item['event_ts']) for item in self.raw_info], [item['buy_price'] for item in self.raw_info]
 
-    def get_buys(self):
-        if (not raw_info)
-            raise Exception('Нет данных')
-        
-        return [datetime.datetime.fromtimestamp(item['event_ts']) for item in self.raw_info], [item['buy_price'] for item in self.rates]
+	def get_spreads(self):
+		""" данные о разнице между покупкой и продажей """
+		if (self.raw_info is None):
+			raise Exception('Нет данных')
+		
+		rate_range = [datetime.datetime.fromtimestamp(item['event_ts']) for item in self.raw_info]
+		spred_data = [item['sell_price'] - item['buy_price'] for item in self.raw_info]
+		min_spred = min(spred_data)
+		spred_data = spred_data + [min_spred] + [min_spred]
+
+		return rate_range + [rate_range[-1]] + [rate_range[0]], spred_data
