@@ -41,3 +41,11 @@ class Analyzer:
 		spred_data = spred_data + [min_spred] + [min_spred]
 
 		return rate_range + [rate_range[-1]] + [rate_range[0]], spred_data
+
+	def _get_from_index(self, date_time):
+		""" получить индекс первого элемента большего чем date_time """
+		return None
+
+	def _get_to_index(self, date_time):
+		""" получить индекс последнего элемента меньшего чем date_time """
+		return None
