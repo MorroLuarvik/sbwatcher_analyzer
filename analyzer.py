@@ -92,22 +92,14 @@ class Analyzer:
 
 	def _set_mins(self):
 		""" установка всех доступных минимумов """
-		for idx, item in enumerate(min_values):
-			print(idx)
-			cur_mins = self._get_period_mins(item['length'])
-			#copy_mins = cur_mins.copy()
-			for subidx in range(idx):
-				print('subrenga ', subidx)
-				for event_ts in cur_mins.copy():
-					if event_ts in min_values[subidx]['datas']:
-						del(cur_mins[event_ts])
-						#print('delete {0}'.format(event_ts))
+		exclude_ts = set()
+
+		for item in min_values:
+			cur_mins = self._get_period_mins(item['length'], exclude_ts)
+			exclude_ts.update( cur_mins.keys() )
 			item['datas'] = cur_mins
 
-		#print(min_values)
-
-
-	def _get_period_mins(self, priod, value_type = 'sell_price'):
+	def _get_period_mins(self, priod, exclude_ts = set(), value_type = 'sell_price'):
 		""" получить словарь минимальных значение типа value_type
 		за период priod секунд  
 		{
@@ -124,7 +116,7 @@ class Analyzer:
 			global_end_idx = cur_idx + first_idx
 
 			range_min = min( [item[value_type] for item in self.raw_info[global_start_idx:global_end_idx]])
-			if item[value_type] <= range_min:
+			if item[value_type] < range_min and not (item['event_ts'] in exclude_ts):
 				ret[ item['event_ts'] ] = item[value_type]
 
 		return ret

@@ -22,8 +22,8 @@ config_file.close()
 
 connect = connector.connect(**configs['mysql'])
 
-start_date = datetime.datetime.strptime('2018.01.01', '%Y.%m.%d')
-end_date = datetime.datetime.strptime('2019.12.30', '%Y.%m.%d')
+start_date = datetime.datetime.strptime('2017.01.01', '%Y.%m.%d')
+end_date = datetime.datetime.strptime('2020.12.30', '%Y.%m.%d')
 
 query = """
 SELECT buy_price, sell_price, event_ts 
@@ -34,8 +34,10 @@ cursor = connect.cursor(dictionary=True)
 cursor.execute(query) 
 rates = cursor.fetchall()
 
+start_time = time.time()
 from analyzer import Analyzer
 analyz = Analyzer(rates)
+print( 'execution time: {0}'.format( time.time() - start_time ) )
 
 
 """
