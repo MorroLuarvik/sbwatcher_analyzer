@@ -39,22 +39,9 @@ from analyzer import Analyzer
 analyz = Analyzer(rates)
 print( 'execution time: {0}'.format( time.time() - start_time ) )
 
+#print(analyz.get_sell_mins(24 * 3600 * 365, 24 * 3600 * 180 ))
 
-"""
-from_uts = time.mktime( datetime.datetime.strptime('2020.3.1', '%Y.%m.%d').timetuple() )
-to_uts = time.mktime( datetime.datetime.strptime('2020.3.20', '%Y.%m.%d').timetuple() )
-from_idx = analyz._get_left_index(from_uts)
-to_idx = analyz._get_left_index(to_uts)
-sell_slice = [ item['sell_price'] for item in rates[from_idx:to_idx] ]
-min_sell_val = min(sell_slice)
-min_idx = from_idx + sell_slice.index(min_sell_val)
-print( 'from: {0}, to: {1}: min sell price: {2} at {3}'.format(
-	time.strftime( '%Y.%m.%d %H:%M:%S', time.localtime(from_uts) ), 
-	time.strftime( '%Y.%m.%d %H:%M:%S', time.localtime(to_uts) ), 
-	min_sell_val,
-	time.strftime( '%Y.%m.%d %H:%M:%S', time.localtime(rates[min_idx]['event_ts']) )
-) )
-"""
+#exit()
 
 plt.figure(figsize=(18, 6))
 plt.subplots_adjust(left=0.05, right=0.95)
@@ -62,17 +49,52 @@ plt.subplots_adjust(left=0.05, right=0.95)
 plt.plot( *analyz.get_sells() )
 plt.plot( *analyz.get_buys() )
 
-min0 = plt.scatter( *analyz.get_sell_mins(0), marker='x', zorder=10 )
-min1 = plt.scatter( *analyz.get_sell_mins(1), zorder=10 )
-min2 = plt.scatter( *analyz.get_sell_mins(2), zorder=10 )
-min3 = plt.scatter( *analyz.get_sell_mins(3), zorder=10 )
-min4 = plt.scatter( *analyz.get_sell_mins(4), zorder=10 )
-min5 = plt.scatter( *analyz.get_sell_mins(5), zorder=10 )
+sid = 24 * 3600
 
+min_periods = [
+	{
+		'from': 365 * 2 * sid,
+		'to': 365 * sid,
+		'label': 'year'
+	},
+	{
+		'from': 365 * sid,
+		'to': 180 * sid,
+		'label': 'half year'
+	},
+	{
+		'from': 180 * sid,
+		'to': 90 * sid,
+		'label': 'quart year'
+	},
+	{
+		'from': 90 * sid,
+		'to': 30 * sid,
+		'label': 'month'
+	},
+	{
+		'from': 30 * sid,
+		'to': 14 * sid,
+		'label': 'two weeks'
+	},
+	{
+		'from': 14 * sid,
+		'to': 7 * sid,
+		'label': 'week'
+	}
+]
+
+for period in min_periods:
+	plt.scatter( *analyz.get_sell_mins(period['from'], period['to']), marker='x', zorder=10, label=period['label'] )
+
+plt.legend()
+
+"""
 plt.legend(
 	(min0, min1, min2, min3, min4, min5),
 	('year', 'half year', 'quart year', 'month', 'two week', 'week')
 )
+"""
 
 plt.show()
 

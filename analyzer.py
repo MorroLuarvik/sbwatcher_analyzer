@@ -2,6 +2,7 @@
 #-*-coding:utf-8-*-
 """ Модуль подготовки данных """
 
+"""
 DAY_LENGTH = 24 * 3600
 WEEK_LENGTH = 7 * DAY_LENGTH
 TWO_WEEK_LENGTH = 14 * DAY_LENGTH
@@ -42,12 +43,17 @@ min_values = [
 		'datas' : []
 	}
 ]
+"""
 
 import datetime
 
 class Analyzer:
 
+	DAY_LENGTH = 24 * 3600
+	MIN_MIN_LENGTH = 7 * DAY_LENGTH
+
 	raw_info = None
+	min_values = {}
 
 	def __init__(self, raw_info = None):
 		""" Установка данных при инициализации класса """
@@ -84,13 +90,59 @@ class Analyzer:
 
 		return rate_range + [rate_range[-1]] + [rate_range[0]], spred_data
 
-	def get_sell_mins(self, idx = 0):
+	def get_sell_mins(self, max_period = None, min_period = None):
 		""" тестовая функция """
 
-		week_datas = min_values[idx]['datas'] #self._get_period_mins(MONTH_LENGTH)
-		return [ datetime.datetime.fromtimestamp(uts) for uts in week_datas.keys() ], week_datas.values()
+		if max_period is None:
+			max_period = self.MIN_MIN_LENGTH * 2
 
-	def _set_mins(self):
+		if min_period is None:
+			min_period = self.MIN_MIN_LENGTH
+
+		#print(self.min_values)
+
+		slice_by_period = [self.min_values[idx] for idx in self.min_values if self.min_values[idx]['length'] <= max_period and self.min_values[idx]['length'] > min_period]
+		
+		#print( [item['sell_price'] for item in self.min_values if item['length'] <= max_period and item['length'] > min_period] ) 
+
+		return [datetime.datetime.fromtimestamp(item['event_ts']) for item in slice_by_period], [item['sell_price'] for item in slice_by_period]
+
+	def _set_mins(self, from_idx = None, to_idx = None, value_type = 'sell_price'):
+		""" заполняем self.min_values минимальными значениями """
+		if from_idx is None:
+			from_idx = 0
+
+		if to_idx is None:
+			to_idx = len(self.raw_info) - 1
+
+		if abs(to_idx - from_idx) <= 1:
+			return
+
+		if abs(self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']) < self.MIN_MIN_LENGTH:
+			return
+
+		values_by_type = [ item[value_type] for item in self.raw_info[from_idx:to_idx] ]
+		min_idx = values_by_type.index( min(values_by_type) ) + from_idx
+		
+		if self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts'] > self.raw_info[min_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']:
+			print('{0} > {1}'.format((self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']) / 24 / 3600, (self.raw_info[min_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']) / 24 / 3600) )
+			self.min_values[ self.raw_info[min_idx]['event_ts'] ] = {
+				value_type: self.raw_info[min_idx][value_type],
+				'event_ts': self.raw_info[min_idx]['event_ts'],
+				'length': self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']
+			}
+
+		#print( '{0} - {1} - {2}'.format(from_idx, min_idx, to_idx) )
+		#print(self.raw_info[min_idx])
+		
+		if min_idx - 1 > from_idx:
+			self._set_mins(from_idx, min_idx - 1)
+		if min_idx + 1 < to_idx:
+			self._set_mins(min_idx + 1, to_idx)
+		
+
+
+	def _set_mins_old(self):
 		""" установка всех доступных минимумов """
 		exclude_ts = set()
 
