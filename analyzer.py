@@ -107,7 +107,7 @@ class Analyzer:
 
 		return [datetime.datetime.fromtimestamp(item['event_ts']) for item in slice_by_period], [item['sell_price'] for item in slice_by_period]
 
-	def _set_mins(self, from_idx = None, to_idx = None, value_type = 'sell_price'):
+	def _set_mins(self, from_idx = None, to_idx = None, prev_min_idx = None, value_type = 'sell_price'):
 		""" заполняем self.min_values минимальными значениями """
 		if from_idx is None:
 			from_idx = 0
@@ -124,8 +124,24 @@ class Analyzer:
 		values_by_type = [ item[value_type] for item in self.raw_info[from_idx:to_idx] ]
 		min_idx = values_by_type.index( min(values_by_type) ) + from_idx
 		
-		if self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts'] > self.raw_info[min_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']:
-			print('{0} > {1}'.format((self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']) / 24 / 3600, (self.raw_info[min_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']) / 24 / 3600) )
+		#if self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts'] > self.raw_info[min_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']:
+
+		need_add = False
+		min_val = self.raw_info[min_idx][value_type]
+		min_dt = datetime.datetime.fromtimestamp(self.raw_info[min_idx]['event_ts'])
+		if prev_min_idx is None:
+			print( 'First Value {0} at {1}'.format(min_val, min_dt) )
+			need_add = True
+
+		if not need_add and prev_min_idx > to_idx:
+			print( 'Prev min in future Value {0} at {1}'.format(min_val, min_dt) )
+			need_add = True
+
+		if not need_add and self.raw_info[min_idx]['event_ts'] - self.raw_info[prev_min_idx]['event_ts'] > self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']:
+			print( 'Big range Value {0} at {1} ({2} > {3})'.format(min_val, min_dt, self.raw_info[min_idx]['event_ts'] - self.raw_info[prev_min_idx]['event_ts'], self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']) )
+			need_add = True
+
+		if need_add:
 			self.min_values[ self.raw_info[min_idx]['event_ts'] ] = {
 				value_type: self.raw_info[min_idx][value_type],
 				'event_ts': self.raw_info[min_idx]['event_ts'],
@@ -136,9 +152,9 @@ class Analyzer:
 		#print(self.raw_info[min_idx])
 		
 		if min_idx - 1 > from_idx:
-			self._set_mins(from_idx, min_idx - 1)
+			self._set_mins(from_idx, min_idx - 1, min_idx)
 		if min_idx + 1 < to_idx:
-			self._set_mins(min_idx + 1, to_idx)
+			self._set_mins(min_idx + 1, to_idx, min_idx)
 		
 
 
