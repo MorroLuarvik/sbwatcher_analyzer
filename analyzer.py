@@ -141,6 +141,7 @@ class Analyzer:
 			print( 'Big range Value {0} at {1} ({2} > {3})'.format(min_val, min_dt, self.raw_info[min_idx]['event_ts'] - self.raw_info[prev_min_idx]['event_ts'], self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']) )
 			need_add = True
 
+		need_add = True
 		if need_add:
 			self.min_values[ self.raw_info[min_idx]['event_ts'] ] = {
 				value_type: self.raw_info[min_idx][value_type],
