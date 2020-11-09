@@ -63,6 +63,7 @@ class Analyzer:
 		""" Установка данных """
 		self.raw_info = raw_info
 		self._set_mins()
+		self._clear_mins()
 
 	def get_sells(self):
 		""" данные о продажах """
@@ -107,6 +108,18 @@ class Analyzer:
 
 		return [datetime.datetime.fromtimestamp(item['event_ts']) for item in slice_by_period], [item['sell_price'] for item in slice_by_period]
 
+	def _clear_mins( self, value_types = ['sell_price'] ):
+		""" удаление неактуальных минимальных значений без учёта послезнания """
+		keys = list( self.min_values.keys() )
+		keys.sort()
+
+		for value_name in value_types:
+			for cur in range( len(keys) - 1, 0, -1 ):
+				cur_ts = keys[cur]
+				prev_ts = keys[cur - 1]
+				if self.min_values[prev_ts][value_name] <= self.min_values[cur_ts][value_name] and cur_ts - prev_ts < self.min_values[cur_ts]['length']:
+					del(self.min_values[cur_ts])
+
 	def _set_mins(self, from_idx = None, to_idx = None, prev_min_idx = None, value_type = 'sell_price'):
 		""" заполняем self.min_values минимальными значениями """
 		if from_idx is None:
@@ -124,7 +137,6 @@ class Analyzer:
 		values_by_type = [ item[value_type] for item in self.raw_info[from_idx:to_idx] ]
 		min_idx = values_by_type.index( min(values_by_type) ) + from_idx
 		
-		#if self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts'] > self.raw_info[min_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']:
 
 		need_add = False
 		min_val = self.raw_info[min_idx][value_type]
@@ -148,25 +160,11 @@ class Analyzer:
 				'event_ts': self.raw_info[min_idx]['event_ts'],
 				'length': self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']
 			}
-
-		#print( '{0} - {1} - {2}'.format(from_idx, min_idx, to_idx) )
-		#print(self.raw_info[min_idx])
 		
 		if min_idx - 1 > from_idx:
 			self._set_mins(from_idx, min_idx - 1, min_idx)
 		if min_idx + 1 < to_idx:
 			self._set_mins(min_idx + 1, to_idx, min_idx)
-		
-
-
-	def _set_mins_old(self):
-		""" установка всех доступных минимумов """
-		exclude_ts = set()
-
-		for item in min_values:
-			cur_mins = self._get_period_mins(item['length'], exclude_ts)
-			exclude_ts.update( cur_mins.keys() )
-			item['datas'] = cur_mins
 
 	def _get_period_mins(self, priod, exclude_ts = set(), value_type = 'sell_price'):
 		""" получить словарь минимальных значение типа value_type

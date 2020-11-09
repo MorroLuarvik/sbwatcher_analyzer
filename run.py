@@ -22,7 +22,7 @@ config_file.close()
 
 connect = connector.connect(**configs['mysql'])
 
-start_date = datetime.datetime.strptime('2020.01.01', '%Y.%m.%d')
+start_date = datetime.datetime.strptime('2020.1.1', '%Y.%m.%d')
 end_date = datetime.datetime.strptime('2020.12.30', '%Y.%m.%d')
 
 query = """
