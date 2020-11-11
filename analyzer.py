@@ -2,50 +2,8 @@
 #-*-coding:utf-8-*-
 """ Модуль подготовки данных """
 
-"""
-DAY_LENGTH = 24 * 3600
-WEEK_LENGTH = 7 * DAY_LENGTH
-TWO_WEEK_LENGTH = 14 * DAY_LENGTH
-MONTH_LENGTH = 30 * DAY_LENGTH
-QUART_YEAR_LENGTH = 90 * DAY_LENGTH
-HALF_YEAR_LENGTH = 180 * DAY_LENGTH
-YEAR_LENGTH = 365 * DAY_LENGTH
-
-min_values = [
-	{
-		'alias': 'year',
-		'length': YEAR_LENGTH,
-		'datas' : {}
-	},
-	{
-		'alias': 'half_year',
-		'length': HALF_YEAR_LENGTH,
-		'datas' : []
-	},
-	{
-		'alias': 'quart_year',
-		'length': QUART_YEAR_LENGTH,
-		'datas' : []
-	},
-	{
-		'alias': 'month',
-		'length': MONTH_LENGTH,
-		'datas' : []
-	},
-	{
-		'alias': 'two_week',
-		'length': TWO_WEEK_LENGTH,
-		'datas' : []
-	},
-	{
-		'alias': 'week',
-		'length': WEEK_LENGTH,
-		'datas' : []
-	}
-]
-"""
-
 import datetime
+import statistics
 
 class Analyzer:
 
@@ -54,6 +12,7 @@ class Analyzer:
 
 	raw_info = None
 	min_values = {}
+	trends = {}
 
 	def __init__(self, raw_info = None):
 		""" Установка данных при инициализации класса """
@@ -64,6 +23,31 @@ class Analyzer:
 		self.raw_info = raw_info
 		self._set_mins()
 		self._clear_mins()
+
+	def generate_trends(self, len_in_days = 7, deep_in_days = 10):
+		""" создаёт график скользящей средней согласно заданным параметрам """
+		self.trends = {}
+		for row in self.raw_info:
+			now_ts = row['event_ts']
+			base_price = self._get_middle_price( now_ts - self.DAY_LENGTH * deep_in_days, now_ts - self.DAY_LENGTH * (deep_in_days - len_in_days) )
+			new_price = self._get_middle_price(now_ts - self.DAY_LENGTH * len_in_days, now_ts)
+			if not base_price is None:
+				self.trends[now_ts] = new_price * 100 / base_price - 100
+
+	def _get_middle_price(self, start_ts, end_ts):
+		""" возвращает среднюю цену за период """
+		start_idx = self._get_left_index(start_ts)
+		end_idx = self._get_left_index(end_ts)
+		if start_idx == end_idx:
+			return None
+		mid_sell_price = statistics.median( [ row['sell_price'] for row in self.raw_info[start_idx:end_idx] ] )
+		mid_buy_price = statistics.median( [ row['buy_price'] for row in self.raw_info[start_idx:end_idx] ] )
+		return (mid_sell_price + mid_buy_price) / 2
+
+	def get_trends(self, max_period = None, min_period = None):
+		""" получить массив трендов для отображения """
+		return [datetime.datetime.fromtimestamp(event_ts) for event_ts in self.trends.keys()], list( self.trends.values() )
+
 
 	def get_sells(self):
 		""" данные о продажах """
@@ -86,10 +70,10 @@ class Analyzer:
 		
 		rate_range = [datetime.datetime.fromtimestamp(item['event_ts']) for item in self.raw_info]
 		spred_data = [item['sell_price'] - item['buy_price'] for item in self.raw_info]
-		min_spred = min(spred_data)
-		spred_data = spred_data + [min_spred] + [min_spred]
+		#min_spred = min(spred_data)
+		#spred_data = spred_data + [min_spred] + [min_spred]
 
-		return rate_range + [rate_range[-1]] + [rate_range[0]], spred_data
+		return rate_range, spred_data # + [rate_range[-1]] + [rate_range[0]]
 
 	def get_sell_mins(self, max_period = None, min_period = None):
 		""" тестовая функция """
@@ -100,11 +84,7 @@ class Analyzer:
 		if min_period is None:
 			min_period = self.MIN_MIN_LENGTH
 
-		#print(self.min_values)
-
 		slice_by_period = [self.min_values[idx] for idx in self.min_values if self.min_values[idx]['length'] <= max_period and self.min_values[idx]['length'] > min_period]
-		
-		#print( [item['sell_price'] for item in self.min_values if item['length'] <= max_period and item['length'] > min_period] ) 
 
 		return [datetime.datetime.fromtimestamp(item['event_ts']) for item in slice_by_period], [item['sell_price'] for item in slice_by_period]
 
@@ -139,18 +119,15 @@ class Analyzer:
 		
 
 		need_add = False
-		min_val = self.raw_info[min_idx][value_type]
-		min_dt = datetime.datetime.fromtimestamp(self.raw_info[min_idx]['event_ts'])
+		#min_val = self.raw_info[min_idx][value_type]
+		#min_dt = datetime.datetime.fromtimestamp(self.raw_info[min_idx]['event_ts'])
 		if prev_min_idx is None:
-			print( 'First Value {0} at {1}'.format(min_val, min_dt) )
 			need_add = True
 
 		if not need_add and prev_min_idx > to_idx:
-			print( 'Prev min in future Value {0} at {1}'.format(min_val, min_dt) )
 			need_add = True
 
 		if not need_add and self.raw_info[min_idx]['event_ts'] - self.raw_info[prev_min_idx]['event_ts'] > self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']:
-			print( 'Big range Value {0} at {1} ({2} > {3})'.format(min_val, min_dt, self.raw_info[min_idx]['event_ts'] - self.raw_info[prev_min_idx]['event_ts'], self.raw_info[to_idx]['event_ts'] - self.raw_info[from_idx]['event_ts']) )
 			need_add = True
 
 		need_add = True

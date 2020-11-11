@@ -22,9 +22,9 @@ config_file.close()
 
 connect = connector.connect(**configs['mysql'])
 
-start_date = datetime.datetime.strptime('2019.1.1', '%Y.%m.%d')
-end_date = datetime.datetime.strptime('2020.11.11', '%Y.%m.%d')
-fin_id = 3 # 1 - usd, 2 - silver, 3 - pld
+start_date = datetime.datetime.strptime('2018.1.1', '%Y.%m.%d')
+end_date = datetime.datetime.strptime('2020.1.1', '%Y.%m.%d')
+fin_id = 1 # 1 - usd, 2 - silver, 3 - pld
 
 query = """
 SELECT buy_price, sell_price, event_ts 
@@ -38,17 +38,21 @@ rates = cursor.fetchall()
 start_time = time.time()
 from analyzer import Analyzer
 analyz = Analyzer(rates)
+
+analyz.generate_trends(7, 10)
+
 print( 'execution time: {0}'.format( time.time() - start_time ) )
 
 #print(analyz.get_sell_mins(24 * 3600 * 365, 24 * 3600 * 180 ))
 
 #exit()
 
-plt.figure(figsize=(18, 6))
-plt.subplots_adjust(left=0.05, right=0.95)
+fig = plt.figure(figsize=(18, 6))
+a1 = plt.subplot(211)
+#a1.subplots_adjust(left=0.05, right=0.95)
 
-plt.plot( *analyz.get_sells() )
-plt.plot( *analyz.get_buys() )
+a1.plot( *analyz.get_sells() )
+a1.plot( *analyz.get_buys() )
 
 sid = 24 * 3600
 
@@ -86,16 +90,13 @@ min_periods = [
 ]
 
 for period in min_periods:
-	plt.scatter( *analyz.get_sell_mins(period['from'], period['to']), marker='x', zorder=10, label=period['label'] )
+	a1.scatter( *analyz.get_sell_mins(period['from'], period['to']), marker='x', zorder=10, label=period['label'] )
 
-plt.legend()
+a1.legend()
 
-"""
-plt.legend(
-	(min0, min1, min2, min3, min4, min5),
-	('year', 'half year', 'quart year', 'month', 'two week', 'week')
-)
-"""
+a2 = plt.subplot(212)
+a2.hlines(0, start_date, end_date )
+a2.plot( *analyz.get_trends() )
 
 plt.show()
 
