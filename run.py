@@ -22,13 +22,14 @@ config_file.close()
 
 connect = connector.connect(**configs['mysql'])
 
-start_date = datetime.datetime.strptime('2020.1.1', '%Y.%m.%d')
-end_date = datetime.datetime.strptime('2020.12.30', '%Y.%m.%d')
+start_date = datetime.datetime.strptime('2019.1.1', '%Y.%m.%d')
+end_date = datetime.datetime.strptime('2020.11.11', '%Y.%m.%d')
+fin_id = 3 # 1 - usd, 2 - silver, 3 - pld
 
 query = """
 SELECT buy_price, sell_price, event_ts 
-FROM f_rates WHERE fin_id = 1 and event_ts BETWEEN {0} AND {1} ORDER BY event_ts;
-""".format(start_date.timestamp(), end_date.timestamp())
+FROM f_rates WHERE fin_id = {2} and event_ts BETWEEN {0} AND {1} ORDER BY event_ts;
+""".format(start_date.timestamp(), end_date.timestamp(), fin_id)
 
 cursor = connect.cursor(dictionary=True)
 cursor.execute(query) 
