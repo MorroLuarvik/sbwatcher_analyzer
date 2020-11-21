@@ -23,7 +23,7 @@ config_file.close()
 
 connect = connector.connect(**configs['mysql'])
 
-start_date = datetime.datetime.strptime('2018.1.1', '%Y.%m.%d')
+start_date = datetime.datetime.strptime('2019.1.1', '%Y.%m.%d')
 end_date = datetime.datetime.strptime('2020.1.1', '%Y.%m.%d')
 fin_id = 1 # 1 - usd, 2 - silver, 3 - pld
 
@@ -41,6 +41,11 @@ from analyzer import Analyzer
 analyz = Analyzer(rates)
 
 analyz.generate_trends(7, 10)
+
+from bots import Bot
+
+cur_bot = Bot(rates)
+cur_bot.run(start_date, end_date)
 
 print( 'execution time: {0}'.format( time.time() - start_time ) )
 
