@@ -27,12 +27,16 @@ class Analyzer:
 	def generate_trends(self, len_in_days = 7, deep_in_days = 10):
 		""" создаёт график скользящей средней согласно заданным параметрам """
 		self.trends = {}
+		self.trends[ self.raw_info[0]['event_ts'] ] = 0
+		
 		for row in self.raw_info:
 			now_ts = row['event_ts']
 			base_price = self._get_middle_price( now_ts - self.DAY_LENGTH * deep_in_days, now_ts - self.DAY_LENGTH * (deep_in_days - len_in_days) )
 			new_price = self._get_middle_price(now_ts - self.DAY_LENGTH * len_in_days, now_ts)
-			if not base_price is None:
+			if not base_price is None and new_price is not None:
 				self.trends[now_ts] = new_price * 100 / base_price - 100
+		
+		self.trends[ self.raw_info[-1]['event_ts'] ] = self.trends[now_ts]
 
 	def _get_middle_price(self, start_ts, end_ts):
 		""" возвращает среднюю цену за период """

@@ -4,6 +4,8 @@
 
 import math
 
-a = 1.1
+a = [1, 'fs', 44, 'd']
 
-print(math.trunc(a, 2))
+if 11 in a:
+    print('yep')
+print(a[-1])

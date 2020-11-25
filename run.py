@@ -23,8 +23,8 @@ config_file.close()
 
 connect = connector.connect(**configs['mysql'])
 
-start_date = datetime.datetime.strptime('2019.1.1', '%Y.%m.%d')
-end_date = datetime.datetime.strptime('2020.1.1', '%Y.%m.%d')
+start_date = datetime.datetime.strptime('2018.1.1', '%Y.%m.%d')
+end_date = datetime.datetime.strptime('2019.1.1', '%Y.%m.%d')
 fin_id = 1 # 1 - usd, 2 - silver, 3 - pld
 main_balance = 60000
 
@@ -81,7 +81,10 @@ min_periods = [
 		'from': 180 * sid,
 		'to': 90 * sid,
 		'label': 'quart year'
-	},
+	}
+]
+
+""",
 	{
 		'from': 90 * sid,
 		'to': 30 * sid,
@@ -96,23 +99,25 @@ min_periods = [
 		'from': 14 * sid,
 		'to': 7 * sid,
 		'label': 'week'
-	}
-]
+	}"""
 
 for period in min_periods:
 	a1.scatter( *analyz.get_sell_mins(period['from'], period['to']), marker='x', zorder=10, label=period['label'] )
 
 a1.legend()
 
+
 #a2 = plt.subplot(212)
+
 a2 = fig.add_subplot(111, label='trends', frame_on=False)
 a2.xaxis.tick_top()
 a2.yaxis.set_visible(False) #a2.yaxis.tick_right()
 
-a2.hlines(0, start_date, end_date )
+#a2.hlines(0, start_date, end_date )
 a2.plot( *analyz.get_trends(), color="#00ffff", zorder=1 )
 
-plt.gca().fmt_xdata = matplotlib.dates.DateFormatter('%Y.%m.%d')
+
+plt.gca().fmt_xdata = matplotlib.dates.DateFormatter('%Y.%m.%d %H:%M')
 plt.show()
 
 print('finish!')

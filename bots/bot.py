@@ -92,7 +92,7 @@ class Bot:
 			
 			if self._is_invest_event(row):
 				self._invest(row)
-			
+
 			if self._is_profit_event(row):
 				self._profit(row)
 			
@@ -100,13 +100,10 @@ class Bot:
 
 	def _is_invest_event(self, trade_row):
 		""" определение момента инвестиции """
-		if self.main_balance is None:
+		if not self.main_balance:
 			return False
 
-		if self.main_balance == 0:
-			return False
-		
-		if self.cur_price is not None and self.cur_price > trade_row['sell_price']:
+		if self.cur_price is not None and self.cur_price < trade_row['sell_price']:
 			return False
 
 		if trade_row['event_ts'] in self.sell_mins:
@@ -116,16 +113,19 @@ class Bot:
 
 	def _is_profit_event(self, trade_row):
 		""" определение момента профита """
-		if self.sec_balance is None:
+		if not self.sec_balance:
 			return False
 
-		if self.sec_balance == 0:
+		if self.cur_price > trade_row['buy_price']:
 			return False
 
-		if self.cur_price is not None and self.cur_price < trade_row['buy_price']:
-			return False
+		if self.cur_trend < 0:
+			return True
 
-		return True
+		if self.prev_trend > self.cur_trend:
+			return True
+
+		return False
 
 	def _invest(self, trade_row):
 		""" инвестирование средств с main_balance в sec_balance """
@@ -147,20 +147,40 @@ class Bot:
 		buy_volume = min( self.ceil(self.main_balance / trade_row['sell_price'], 2 ), buy_volume )
 
 		self.main_balance -= trade_row['sell_price'] * buy_volume
+		
+		if self.total_invest is None:
+			self.total_invest = 0	
+		self.total_invest += trade_row['sell_price'] * buy_volume
+
+		if self.sec_balance is None:
+			self.sec_balance = 0	
 		self.sec_balance += buy_volume
 
-		print( '{0} buy {1} @ {2} eq {3}'.format( datetime.datetime.fromtimestamp(trade_row['event_ts']), buy_volume, trade_row['sell_price'], trade_row['sell_price'] * buy_volume ) )
+		self.cur_price = self.ceil(self.total_invest / self.sec_balance, 2)
+
+		print( '{0} buy {1} @ {2} eq {3} cur price: {4}'.format( datetime.datetime.fromtimestamp(trade_row['event_ts']), buy_volume, trade_row['sell_price'], trade_row['sell_price'] * buy_volume, self.cur_price) )
 
 	
 	def _profit(self, trade_row):
 		""" получение profit с sec_balance """
-		raise Exception('Данная функция не реализована')
+		if not self.main_balance:
+			return False
+
+		if self.prev_trend < self.cur_trend:
+			return False
+
+		print( 'At {0} accept {1} vs {2} invested'.format( datetime.datetime.fromtimestamp(trade_row['event_ts']), trade_row['buy_price'] * self.sec_balance, self.total_invest) )
+
+		self.main_balance += trade_row['buy_price'] * self.sec_balance
+		self.sec_balance = None
+		self.cur_price = None
+		self.total_invest = None
 
 	def set_main_balance(self, balance):
 		self.main_balance = balance
 
-	def get_total_balance(self):
-		return self.main_balance + self.sec_balance
+	def get_total_balance(self, trade_row):
+		return self.main_balance + self.sec_balance * trade_row['buy_price']
 	
 	def get_main_balance(self):
 		return self.main_balance
