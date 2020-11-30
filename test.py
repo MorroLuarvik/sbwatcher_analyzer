@@ -4,8 +4,7 @@
 
 import math
 
-a = [1, 'fs', 44, 'd']
+a = {1: 'fs', 44: 'd'}
 
-if 11 in a:
-    print('yep')
-print(a[-1])
+print(a.keys(), list(a.values()) )
+

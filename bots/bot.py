@@ -41,7 +41,7 @@ class Bot:
 			'from': 30 * SID,
 			'to': 14 * SID,
 			'label': 'two weeks',
-			'volume': 4
+			'volume': 5
 		},
 		{
 			'from': 14 * SID,
@@ -59,6 +59,8 @@ class Bot:
 	sec_balance = None
 	cur_price = None
 	total_invest = None
+
+	profit_logs = {}
 
 	cur_trend = None
 	prev_trend = None
@@ -82,6 +84,8 @@ class Bot:
 		
 		if not isinstance(to_dt, datetime.datetime):
 			return
+
+		self.profit_logs = {}
 
 		for row in self.raw_trades:
 			if row['event_ts'] in self.mid_trends:
@@ -107,7 +111,11 @@ class Bot:
 			return False
 
 		if trade_row['event_ts'] in self.sell_mins:
-			return True
+			if self.cur_price:
+				return True
+			
+			if self.sell_mins[ trade_row['event_ts'] ]['length'] > self.buy_volumes[3]['from']:
+				return True
 		
 		return False
 
@@ -146,11 +154,11 @@ class Bot:
 
 		buy_volume = min( self.ceil(self.main_balance / trade_row['sell_price'], 2 ), buy_volume )
 
-		self.main_balance -= trade_row['sell_price'] * buy_volume
+		self.main_balance -= self.ceil(trade_row['sell_price'] * buy_volume)
 		
 		if self.total_invest is None:
 			self.total_invest = 0	
-		self.total_invest += trade_row['sell_price'] * buy_volume
+		self.total_invest += self.ceil( trade_row['sell_price'] * buy_volume, 2 )
 
 		if self.sec_balance is None:
 			self.sec_balance = 0	
@@ -169,19 +177,27 @@ class Bot:
 		if self.prev_trend < self.cur_trend:
 			return False
 
-		print( 'At {0} accept {1} vs {2} invested'.format( datetime.datetime.fromtimestamp(trade_row['event_ts']), trade_row['buy_price'] * self.sec_balance, self.total_invest) )
+		print( 'At {0} accept {1} vs {2} invested. Sell price: {3}'.format( datetime.datetime.fromtimestamp(trade_row['event_ts']), trade_row['buy_price'] * self.sec_balance, self.total_invest, trade_row['buy_price'] ) )
 
-		self.main_balance += trade_row['buy_price'] * self.sec_balance
+		self.profit_logs[trade_row['event_ts']] = trade_row['buy_price']
+
+		self.main_balance += self.ceil( trade_row['buy_price'] * self.sec_balance, 2)
 		self.sec_balance = None
 		self.cur_price = None
 		self.total_invest = None
+
+		print( 'main balance: {0}'.format(self.main_balance) )
 
 	def set_main_balance(self, balance):
 		self.main_balance = balance
 
 	def get_total_balance(self, trade_row):
-		return self.main_balance + self.sec_balance * trade_row['buy_price']
+		""" Возвращает полный баланс бота для указанной даты """
+		return self.main_balance + self.ceil( self.sec_balance * trade_row['buy_price'], 2 )
 	
+	def get_profit_events(self):
+		return [datetime.datetime.fromtimestamp(event_ts) for event_ts in self.profit_logs.keys()], list( self.profit_logs.values() )
+
 	def get_main_balance(self):
 		return self.main_balance
 

@@ -22,7 +22,7 @@ class Analyzer:
 		""" Установка данных """
 		self.raw_info = raw_info
 		self._set_mins()
-		self._clear_mins()
+		self._purge_mins()
 
 	def generate_trends(self, len_in_days = 7, deep_in_days = 10):
 		""" создаёт график скользящей средней согласно заданным параметрам """
@@ -92,7 +92,7 @@ class Analyzer:
 
 		return [datetime.datetime.fromtimestamp(item['event_ts']) for item in slice_by_period], [item['sell_price'] for item in slice_by_period]
 
-	def _clear_mins( self, value_types = ['sell_price'] ):
+	def _purge_mins( self, value_types = ['sell_price'] ):
 		""" удаление неактуальных минимальных значений без учёта послезнания """
 		keys = list( self.min_values.keys() )
 		keys.sort()

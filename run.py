@@ -81,15 +81,15 @@ min_periods = [
 		'from': 180 * sid,
 		'to': 90 * sid,
 		'label': 'quart year'
-	}
-]
-
-""",
+	},
 	{
 		'from': 90 * sid,
 		'to': 30 * sid,
 		'label': 'month'
-	},
+	}
+]
+
+""",
 	{
 		'from': 30 * sid,
 		'to': 14 * sid,
@@ -104,18 +104,23 @@ min_periods = [
 for period in min_periods:
 	a1.scatter( *analyz.get_sell_mins(period['from'], period['to']), marker='x', zorder=10, label=period['label'] )
 
-a1.legend()
+
 
 
 #a2 = plt.subplot(212)
 
-a2 = fig.add_subplot(111, label='trends', frame_on=False)
-a2.xaxis.tick_top()
-a2.yaxis.set_visible(False) #a2.yaxis.tick_right()
+#a2 = fig.add_subplot(111, label='trends', frame_on=False)
+a2 = a1.twinx()
 
-#a2.hlines(0, start_date, end_date )
+a2.xaxis.tick_top()
+#a2.yaxis.set_visible(False) #a2.yaxis.tick_right()
+
+a2.hlines(0, start_date, end_date )
 a2.plot( *analyz.get_trends(), color="#00ffff", zorder=1 )
 
+a1.scatter( *cur_bot.get_profit_events(), marker='^', zorder=20, label='Profit events' )
+
+a1.legend()
 
 plt.gca().fmt_xdata = matplotlib.dates.DateFormatter('%Y.%m.%d %H:%M')
 plt.show()
