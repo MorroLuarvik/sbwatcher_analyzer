@@ -5,6 +5,20 @@
 import datetime
 import statistics
 
+class Mins:
+	""" Класс определения минимумов честным образом """
+	
+	start_ts = None
+
+	def __init__(self, raw_info):
+		""" Определяем стартовую точку """
+		self.start_ts = raw_info[0]['event_ts']
+
+	def get_min_range(self, rate_row, price_type = 'buy_price'):
+		""" Определяем, оказалось ли переданное значение rate_row[price_type] минимальным, 
+		если да, то возвращаем временной интервал от предудыщего события, в противном случае - False """
+		return False
+
 class Analyzer:
 
 	DAY_LENGTH = 24 * 3600

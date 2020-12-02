@@ -2,9 +2,8 @@
 #-*-coding:utf-8-*-
 """ Тестовый скрипт """
 
-import math
+from stats import ExtremumSeq
 
-a = {1: 'fs', 44: 'd'}
+raw_data = {1: 5, 2: 34, 3: 12}
 
-print(a.keys(), list(a.values()) )
-
+print('finish')
