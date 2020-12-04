@@ -38,7 +38,7 @@ class ExtremumSeq:
 			raise Exception('Wrong type of length, must be int or float')
 
 		ret = False
-		if self.extrem_value is not None and self.is_extremum(value, self.extrem_value):
+		if self.extrem_value is not None and ts - self.sequence[0]['event_ts'] >= self.length and self.is_extremum(value, self.extrem_value):
 			self.extrem_value = value
 			self.exterm_ts = ts
 			ret = True
