@@ -86,10 +86,7 @@ min_periods = [
 		'from': 90 * sid,
 		'to': 30 * sid,
 		'label': 'month'
-	}
-]
-
-""",
+	},
 	{
 		'from': 30 * sid,
 		'to': 14 * sid,
@@ -99,14 +96,15 @@ min_periods = [
 		'from': 14 * sid,
 		'to': 7 * sid,
 		'label': 'week'
-	}"""
+	}
+]
 
-for period in min_periods:
+for period in [min_periods[-1]]:
 	a1.scatter( *analyz.get_sell_mins(period['from'], period['to']), marker='x', zorder=10, label=period['label'] )
 
 
 
-
+"""
 #a2 = plt.subplot(212)
 
 #a2 = fig.add_subplot(111, label='trends', frame_on=False)
@@ -118,7 +116,7 @@ a2.xaxis.tick_top()
 a2.hlines(0, start_date, end_date )
 a2.plot( *analyz.get_trends(), color="#00ffff", zorder=1 )
 
-a1.scatter( *cur_bot.get_profit_events(), marker='^', zorder=20, label='Profit events' )
+a1.scatter( *cur_bot.get_profit_events(), marker='^', zorder=20, label='Profit events' )"""
 
 a1.legend()
 
