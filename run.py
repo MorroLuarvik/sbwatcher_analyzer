@@ -23,7 +23,7 @@ config_file.close()
 
 connect = connector.connect(**configs['mysql'])
 
-start_date = datetime.datetime.strptime('2018.1.1', '%Y.%m.%d')
+start_date = datetime.datetime.strptime('2017.1.1', '%Y.%m.%d')
 end_date = datetime.datetime.strptime('2019.1.1', '%Y.%m.%d')
 fin_id = 1 # 1 - usd, 2 - silver, 3 - pld
 main_balance = 60000
@@ -43,12 +43,13 @@ analyz = Analyzer(rates)
 
 analyz.generate_trends(7, 10)
 
+"""
 from bots import Bot
 
 cur_bot = Bot(rates)
 cur_bot.set_params(analyz.min_values, analyz.trends)
 cur_bot.set_main_balance(main_balance)
-cur_bot.run(start_date, end_date)
+cur_bot.run(start_date, end_date)"""
 
 print( 'execution time: {0}'.format( time.time() - start_time ) )
 
@@ -99,8 +100,16 @@ min_periods = [
 	}
 ]
 
+# =========== тестовое создание минимумов ===========
+analyz._generate_mins(7 * sid)
+analyz._generate_maxs(30 * sid)
+# =========== тестовое создание минимумов ===========
+
 for period in [min_periods[-1]]:
 	a1.scatter( *analyz.get_sell_mins(period['from'], period['to']), marker='x', zorder=10, label=period['label'] )
+
+a1.scatter( *analyz._get_sell_mins(), marker='o', zorder=10, label='another mins' )
+a1.scatter( *analyz._get_buy_maxs(), marker='v', zorder=10, label='another maxs' )
 
 
 

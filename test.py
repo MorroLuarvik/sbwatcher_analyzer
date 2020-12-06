@@ -18,12 +18,12 @@ for idx in range(101):
 
 length =  10
 
-seq10 = ExtremumSeq(length, min_func)
+seq10 = ExtremumSeq(length, max_func)
 
 for row in raw_data:
     print( '{ts}: {value}'.format(**row), end='  \t')
     if seq10.add_value(row['value'], row['ts']):
-        print('local min')
+        print('local max')
     else:
         print('odrinary val')
 

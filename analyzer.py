@@ -4,20 +4,13 @@
 
 import datetime
 import statistics
+from stats import ExtremumSeq
 
-class Mins:
-	""" Класс определения минимумов честным образом """
-	
-	start_ts = None
+def min_func(new_val, old_val):
+    return new_val < old_val
 
-	def __init__(self, raw_info):
-		""" Определяем стартовую точку """
-		self.start_ts = raw_info[0]['event_ts']
-
-	def get_min_range(self, rate_row, price_type = 'buy_price'):
-		""" Определяем, оказалось ли переданное значение rate_row[price_type] минимальным, 
-		если да, то возвращаем временной интервал от предудыщего события, в противном случае - False """
-		return False
+def max_func(new_val, old_val):
+    return new_val > old_val
 
 class Analyzer:
 
@@ -28,9 +21,34 @@ class Analyzer:
 	min_values = {}
 	trends = {}
 
+	_min_values = {}
+	_max_values = {}
+
 	def __init__(self, raw_info = None):
 		""" Установка данных при инициализации класса """
 		self.set_data(raw_info)
+
+	def _generate_mins(self, length):
+		""" тестовая функция генерации минимумов """
+		seq = ExtremumSeq(length, min_func)
+		for row in self.raw_info:
+			if seq.add_value(row['sell_price'], row['event_ts']):
+				self._min_values[ row['event_ts'] ] = row['sell_price']
+
+	def _generate_maxs(self, length):
+		""" тестовая функция генерации минимумов """
+		seq = ExtremumSeq(length, max_func)
+		for row in self.raw_info:
+			if seq.add_value(row['buy_price'], row['event_ts']):
+				self._max_values[ row['event_ts'] ] = row['buy_price']
+
+	def _get_sell_mins(self):
+		""" получаем минимумы сгенерированные тестовой функцией self._min_values для отображения  """
+		return [datetime.datetime.fromtimestamp(event_ts) for event_ts in self._min_values.keys()], list( self._min_values.values() )
+
+	def _get_buy_maxs(self):
+		""" получаем максимумы сгенерированные тестовой функцией self._min_values для отображения  """
+		return [datetime.datetime.fromtimestamp(event_ts) for event_ts in self._max_values.keys()], list( self._max_values.values() )
 
 	def set_data(self, raw_info):
 		""" Установка данных """

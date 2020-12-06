@@ -25,6 +25,7 @@ class ExtremumSeq:
 		if not callable(is_extremum):
 			raise Exception('compare_function, must be a function')
 
+		self.sequence = []
 		self.is_extremum = is_extremum
 
 	def add_value(self, value = None, ts = None):
@@ -38,7 +39,8 @@ class ExtremumSeq:
 			raise Exception('Wrong type of length, must be int or float')
 
 		ret = False
-		if self.extrem_value is not None and ts - self.sequence[0]['event_ts'] >= self.length and self.is_extremum(value, self.extrem_value):
+		# and ts - self.sequence[0]['event_ts'] >= self.length
+		if self.extrem_value is not None and self.is_extremum(value, self.extrem_value):
 			self.extrem_value = value
 			self.exterm_ts = ts
 			ret = True
